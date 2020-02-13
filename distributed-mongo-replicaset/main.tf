@@ -188,7 +188,7 @@ resource "null_resource" "provision_mgt" {
 }
 
 #########
-######### Deploy kubernetes worker virtual machines in the cloudspaces
+######### Deploy mongo host virtual machines in the cloudspaces
 #########
 resource "ovc_machine" "mongo_site_1" {
   provider      = "ovc.site_1"
