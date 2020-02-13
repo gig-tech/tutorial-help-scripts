@@ -37,16 +37,8 @@
   tasks:
     - name: Install pymongo
       apt: name=python3-pymongo state=latest update_cache=yes allow_unauthenticated=yes
-    # - debug:
-    #     msg: "{{ groups['mongo-hosts'][0] }}"
-    # - debug: 
-    #     var: hostvars[groups['mongo-hosts'][0]]
-    # - debug:
-    #     msg: "{{ hostvars[groups['mongo-hosts'][0]]['ansible_host'] }}:27017"
     - mongodb_replicaset:
         login_host: "{{ hostvars[groups['mongo-hosts'][0]]['ansible_host'] }}"
-        # login_user: "root"
-        # login_password: "4A716829-6409-493F-B4B7-37C342A38EFE"
         replica_set: "rs0"
         validate: no
         members:
