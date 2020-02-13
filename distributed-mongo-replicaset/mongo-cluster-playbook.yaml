@@ -1,0 +1,55 @@
+---
+- hosts: mongo-hosts
+  tasks:
+    - name: Add Mongo packages repo
+      apt_key: id=2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5  keyserver=keyserver.ubuntu.com
+    - name: Add repo itself
+      apt_repository: repo='deb http://repo.mongodb.org/apt/ubuntu {{ansible_distribution_release}}/mongodb-org/3.4 multiverse' state=present                                      
+    - name: Install mongo
+      apt: name=mongodb-org state=latest update_cache=yes allow_unauthenticated=yes
+    - name: Configure Mongo
+      copy:
+        src: mongod.conf
+        dest: /etc/mongod.conf
+        owner: root
+        group: root
+        mode: '0644'
+    - name: Stop mongo
+      systemd:
+        state: stopped
+        name: mongod
+    - name: Cleanup database
+      file: 
+        path: /var/lib/mongodb
+        state: absent
+    - name: Create database directpry
+      file: 
+        path: /var/lib/mongodb
+        state: directory
+        owner: mongodb
+        group: mongodb
+        mode: '0755'
+    - name: Start mongo
+      systemd:
+        state: started
+        name: mongod
+- hosts: mgt
+  tasks:
+    - name: Install pymongo
+      apt: name=python3-pymongo state=latest update_cache=yes allow_unauthenticated=yes
+    # - debug:
+    #     msg: "{{ groups['mongo-hosts'][0] }}"
+    # - debug: 
+    #     var: hostvars[groups['mongo-hosts'][0]]
+    # - debug:
+    #     msg: "{{ hostvars[groups['mongo-hosts'][0]]['ansible_host'] }}:27017"
+    - mongodb_replicaset:
+        login_host: "{{ hostvars[groups['mongo-hosts'][0]]['ansible_host'] }}"
+        # login_user: "root"
+        # login_password: "4A716829-6409-493F-B4B7-37C342A38EFE"
+        replica_set: "rs0"
+        validate: no
+        members:
+          - "{{ hostvars[groups['mongo-hosts'][0]]['ansible_host'] }}:27017"
+          - "{{ hostvars[groups['mongo-hosts'][1]]['ansible_host'] }}:27017"
+          - "{{ hostvars[groups['mongo-hosts'][2]]['ansible_host'] }}:27017"
